@@ -62,7 +62,8 @@ class Admin {
 		
 		$log_path = get_option( 'wspas_log_path', ABSPATH . 'access.log' );
 		$is_readable = file_exists( $log_path ) && is_readable( $log_path );
-		
+		// echo $log_path;
+
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'WP Suspicious PHP Access Scanner', 'wp-suspicious-php-access-scanner' ); ?></h1>
@@ -110,16 +111,67 @@ class Admin {
 						<?php esc_html_e( 'Start Scan', 'wp-suspicious-php-access-scanner' ); ?>
 					</button>
 					<div id="wspas-scan-progress" style="margin-top: 15px; display: none;">
-						<p><?php esc_html_e( 'Scanning...', 'wp-suspicious-php-access-scanner' ); ?></p>
+						<p><?php esc_html_e( 'Scanning...', 'wp-suspicious-php-access-scanner' ); ?> <span id="wspas-scan-percent">0%</span></p>
 					</div>
 				<?php endif; ?>
 			</div>
 			
 			<div class="card" style="margin-top: 20px;">
 				<h2><?php esc_html_e( 'Results', 'wp-suspicious-php-access-scanner' ); ?></h2>
-				<p><?php esc_html_e( 'Scan results will appear here.', 'wp-suspicious-php-access-scanner' ); ?></p>
+				<p id="wspas-scan-results"><?php esc_html_e( 'Scan results will appear here.', 'wp-suspicious-php-access-scanner' ); ?></p>
 			</div>
 		</div>
+		<script>
+		jQuery(document).ready(function($) {
+			$('#wspas-start-scan').on('click', function() {
+				var $btn = $(this);
+				var $progress = $('#wspas-scan-progress');
+				var $percent = $('#wspas-scan-percent');
+				var $results = $('#wspas-scan-results');
+				
+				$btn.prop('disabled', true);
+				$progress.show();
+				$percent.text('0%');
+				$results.text('Scanning in progress...');
+
+				function doScan(offset) {
+					$.post(ajaxurl, {
+						action: 'wspas_start_scan',
+						nonce: '<?php echo wp_create_nonce( 'wspas_scan_nonce' ); ?>',
+						offset: offset
+					}, function(response) {
+						if (response.success) {
+							var data = response.data;
+							var pct = 100;
+							if (data.total > 0) {
+								pct = Math.round((data.processed / data.total) * 100);
+							}
+							if (pct > 100) pct = 100;
+							
+							$percent.text(pct + '%');
+							$results.text('Found ' + data.findings + ' suspicious requests so far.');
+							
+							if (data.status === 'running') {
+								doScan(data.offset);
+							} else {
+								$btn.prop('disabled', false);
+								$progress.find('p').html('<strong>Scan Complete!</strong>');
+								$results.html('Scan finished. Total suspicious findings: <strong>' + data.findings + '</strong>');
+							}
+						} else {
+							alert('Scan failed: ' + response.data);
+							$btn.prop('disabled', false);
+						}
+					}).fail(function() {
+						alert('An error occurred during the scan.');
+						$btn.prop('disabled', false);
+					});
+				}
+				
+				doScan(0);
+			});
+		});
+		</script>
 		<?php
 	}
 
