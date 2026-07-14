@@ -1,0 +1,29 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - wp-suspicious-php-access-scanner.php
+    excludePaths:
+        - vendor
+        - tests
+    ignoreErrors:
+        - '#Function get_plugins not found\.#'
+        - '#Function wp_parse_url not found\.#'
+        - '#Function urldecode not found\.#'
+        - '#Function get_transient not found\.#'
+        - '#Function set_transient not found\.#'
+        - '#Function is_admin not found\.#'
+        - '#Function add_action not found\.#'
+        - '#Function add_management_page not found\.#'
+        - '#Function __ not found\.#'
+        - '#Function esc_html_e not found\.#'
+        - '#Function current_user_can not found\.#'
+        - '#Function check_ajax_referer not found\.#'
+        - '#Function wp_send_json_success not found\.#'
+        - '#Function wp_send_json_error not found\.#'
+        - '#Function flush_rewrite_rules not found\.#'
+        - '#Function dbDelta not found\.#'
+        - '#Function plugin_dir_path not found\.#'
+        - '#Function plugin_dir_url not found\.#'
+        - '#Function register_activation_hook not found\.#'
+        - '#Function register_deactivation_hook not found\.#'
